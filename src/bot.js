@@ -98,9 +98,11 @@ bot.on('message', async (msg) => {
   const loadingMsg = await bot.sendMessage(chatId, '🔍 Buscando en Leroy Merlin España…');
 
   try {
+    console.log(`🔍 Buscando: "${query}"`);
     const searchResults = await client.searchProducts(query);
 
-    if (!searchResults.length) {
+    if (!searchResults || !searchResults.length) {
+      console.log(`❌ No se encontraron resultados para: "${query}"`);
       bot.editMessageText(
         '❌ No encontré resultados para esa búsqueda.\n\nPrueba con:',
         { chat_id: chatId, message_id: loadingMsg.message_id }
@@ -108,6 +110,7 @@ bot.on('message', async (msg) => {
       return;
     }
 
+    console.log(`✅ Se encontraron ${searchResults.length} resultados`);
     await bot.editMessageText(
       '📦 Cargando detalles del producto…',
       { chat_id: chatId, message_id: loadingMsg.message_id }
@@ -121,7 +124,8 @@ bot.on('message', async (msg) => {
       { chat_id: chatId, message_id: loadingMsg.message_id, parse_mode: 'Markdown' }
     );
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('❌ Error detallado:', error.message);
+    console.error('Stack:', error.stack);
     bot.editMessageText(
       '⚠️ Hubo un error al consultar Leroy Merlin.\n\nIntentalo de nuevo en unos segundos.',
       { chat_id: chatId, message_id: loadingMsg.message_id }
@@ -130,7 +134,7 @@ bot.on('message', async (msg) => {
 });
 
 bot.on('polling_error', (error) => {
-  console.error('Error de polling:', error);
+  console.error('❌ Error de polling:', error);
 });
 
 console.log('✅ Bot de Telegram iniciado correctamente.');
