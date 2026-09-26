@@ -1,90 +1,49 @@
-const TelegramBot = require('node-telegram-bot-api');
-const dotenv = require('dotenv');
-const LeroyMerlinClient = require('./leroyMerlinClient');
+# Leroy Merlin Price Bot
 
-dotenv.config();
+Bot de Telegram para buscar productos de Leroy Merlin España y mostrar el precio más relevante disponible.
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const client = new LeroyMerlinClient();
+## Requisitos
 
-if (!token) {
-  console.error('Falta TELEGRAM_BOT_TOKEN en el archivo .env');
-  process.exit(1);
-}
+- Node.js 18+
+- Token de Telegram generado por @BotFather
 
-const bot = new TelegramBot(token, { polling: true });
+## Instalación
 
-function formatProductResponse(product) {
-  const parts = [];
-  parts.push(`*${product.title}*`);
+```bash
+npm install
+```
 
-  if (product.price) {
-    parts.push(`Precio general: ${product.price}`);
-  }
+## Configuración
 
-  if (product.storePrices && product.storePrices.length > 0) {
-    parts.push('Precios por tienda:');
-    product.storePrices.forEach((entry, index) => {
-      parts.push(`${index + 1}. ${entry.label}: ${entry.price.toFixed(2).replace('.', ',')} €`);
-    });
-  } else {
-    parts.push('No pude detectar precios por tienda en esta página, pero aquí tienes el enlace del producto.');
-  }
+Copia `.env.example` a `.env` y rellena tu token:
 
-  if (product.url) {
-    parts.push(`\nEnlace: ${product.url}`);
-  }
+```bash
+cp .env.example .env
+```
 
-  return parts.join('\n');
-}
+Contenido recomendado:
 
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  const intro = [
-    'Hola 👋',
-    'Soy el bot de precios de Leroy Merlin España.',
-    'Solo escribe el nombre de un producto, por ejemplo:',
-    '• taladro',
-    '• pintura blanca',
-    '• sierra circular',
-    'Y te buscaré el mejor resultado disponible.'
-  ].join('\n');
+```env
+TELEGRAM_BOT_TOKEN=tu_token_de_telegram
+```
 
-  bot.sendMessage(chatId, intro);
-});
+## Ejecución
 
-bot.on('message', async (msg) => {
-  if (!msg.text || msg.text.startsWith('/')) {
-    return;
-  }
+```bash
+npm start
+```
 
-  const chatId = msg.chat.id;
-  const query = msg.text.trim();
+## Uso
 
-  if (!query) {
-    return;
-  }
+En Telegram:
 
-  try {
-    await bot.sendMessage(chatId, `Buscando “${query}” en Leroy Merlin…`);
+- `/start`
+- `taladro`
+- `pintura blanca`
+- `sierra circular`
 
-    const searchResults = await client.searchProducts(query);
+El bot buscará productos en Leroy Merlin España y devolverá el primero con precio detectable.
 
-    if (!searchResults.length) {
-      await bot.sendMessage(chatId, 'No encontré resultados para esa búsqueda. Prueba con un nombre más específico.');
-      return;
-    }
+## Nota importante
 
-    const result = await client.getProductDetails(searchResults[0].url);
-    const response = formatProductResponse(result);
-
-    await bot.sendMessage(chatId, response, {
-      parse_mode: 'Markdown'
-    });
-  } catch (error) {
-    console.error(error);
-    await bot.sendMessage(chatId, 'Hubo un error al consultar Leroy Merlin. Inténtalo de nuevo en unos segundos.');
-  }
-});
-
-console.log('Bot de Telegram iniciado.');
+Leroy Merlin España no publica una API pública oficial para precios por tienda. Este bot usa scraping del sitio web y puede requerir ajustes si cambian la estructura HTML.
