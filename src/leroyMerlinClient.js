@@ -14,7 +14,7 @@ class LeroyMerlinClient {
         'Accept-Language': 'es-ES,es;q=0.9',
         'Upgrade-Insecure-Requests': '1'
       },
-      timeout: 25000
+      timeout: 40000
     });
 
     return response.data;
@@ -138,7 +138,8 @@ class LeroyMerlinClient {
 
   parseStorePrices($) {
     const candidates = [];
-    const priceRegex = /(?:\b(?:Tienda|Local|Madrid|Barcelona|Valencia|Sevilla|Bilbao|Málaga|Alicante|Zaragoza|Murcia|Mallorca|Galicia|Córdoba|Granada|Toledo|Valladolid|Albacete|Pamplona)\b[^\n]*[:\-]?\s*|\b[A-Za-zÀ-ÿ\s]+\b\s*[:\-]\s*)(\d+(?:[.,]\d{1,2})?)\s*€?/gi;
+    // Regex completo para detectar precios por tienda
+    const priceRegex = /(?:\b(?:Tienda|Local|Madrid|Barcelona|Valencia|Sevilla|Bilbao|Málaga|Alicante|Zaragoza|Murcia|Mallorca|Galicia|Córdoba|Granada|Toledo|Valladolid|Albacete|Pamplona)\b[^€\n]*?)(\d+(?:[.,]\d{1,2})?)\s*€/gi;
 
     const textNodes = $('body').text();
     const matches = textNodes.matchAll(priceRegex);
